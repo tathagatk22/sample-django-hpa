@@ -1,0 +1,72 @@
+# apiVersion: apps/v1beta1
+# kind: Deployment
+# metadata:
+#   name: sample-django
+# spec:
+#   replicas: 10
+#   strategy:
+#     type: RollingUpdate
+#     rollingUpdate:
+#       maxUnavailable: 30%
+#   template:
+#     metadata:
+#       labels:
+#         app: sample-django
+#     spec:
+#       imagePullSecrets:
+#         - name: regcred
+#       containers:
+#       - image: docker.io/tathagatk22/sample-django:e11d2ff
+#         name: sample-django
+#         ports:
+#         - name: port
+#           containerPort: 8000
+#           protocol: TCP
+#         envFrom:
+#         - secretRef:
+#             name: db-conn-secrets
+#         livenessProbe:
+#           httpGet:
+#             path: /core/health-check
+#             port: port
+#             scheme: HTTP
+#           initialDelaySeconds: 60
+#           periodSeconds: 30
+#         readinessProbe:
+#           httpGet:
+#             path: /core/health-check
+#             port: port
+#             scheme: HTTP
+#           initialDelaySeconds: 30
+#           periodSeconds: 10
+#         resources:
+#           limits:
+#             cpu: 60m
+#             memory: 400Mi  
+---
+apiVersion: apps/v1beta1
+kind: Deployment
+metadata:
+  name: postgres
+spec:
+  replicas: 2
+  template:
+    metadata:
+      labels:
+        app: postgres
+    spec:
+      containers:
+      - name: postgres
+        image: postgres:9.6.5
+        ports:
+        - containerPort: 5432
+        envFrom:
+          - secretRef:
+              name: db-secrets
+        volumeMounts:
+        - mountPath: "/var/lib/postgresql/data"
+          name: volume
+      volumes:
+        - name: volume
+          persistentVolumeClaim:
+            claimName: azure-file
