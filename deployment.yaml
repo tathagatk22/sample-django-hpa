@@ -1,55 +1,63 @@
-# apiVersion: apps/v1beta1
-# kind: Deployment
-# metadata:
-#   name: sample-django
-# spec:
-#   replicas: 10
-#   strategy:
-#     type: RollingUpdate
-#     rollingUpdate:
-#       maxUnavailable: 30%
-#   template:
-#     metadata:
-#       labels:
-#         app: sample-django
-#     spec:
-#       imagePullSecrets:
-#         - name: regcred
-#       containers:
-#       - image: docker.io/tathagatk22/sample-django:e11d2ff
-#         name: sample-django
-#         ports:
-#         - name: port
-#           containerPort: 8000
-#           protocol: TCP
-#         envFrom:
-#         - secretRef:
-#             name: db-conn-secrets
-#         livenessProbe:
-#           httpGet:
-#             path: /core/health-check
-#             port: port
-#             scheme: HTTP
-#           initialDelaySeconds: 60
-#           periodSeconds: 30
-#         readinessProbe:
-#           httpGet:
-#             path: /core/health-check
-#             port: port
-#             scheme: HTTP
-#           initialDelaySeconds: 30
-#           periodSeconds: 10
-#         resources:
-#           limits:
-#             cpu: 60m
-#             memory: 400Mi  
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: sample-django
+spec:
+  replicas: 10
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 30%
+  selector:
+    matchLabels:
+      app: sample-django
+  template:
+    metadata:
+      labels:
+        app: sample-django
+    spec:
+      imagePullSecrets:
+        - name: regcred
+      containers:
+      - image: tathagatk22/sample-django:e11d2ff
+        name: sample-django
+        imagePullPolicy: Always
+        ports:
+          - name: port
+            containerPort: 8000
+            protocol: TCP
+        envFrom:
+          - secretRef:
+              name: db-conn-secrets
+        livenessProbe:
+          httpGet:
+            path: /core/health-check
+            port: port
+            scheme: HTTP
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /core/health-check
+            port: port
+            scheme: HTTP
+          initialDelaySeconds: 30
+          periodSeconds: 10
+        resources:
+          limits:
+            cpu: 60m
+            memory: 400Mi
+
 ---
-apiVersion: apps/v1beta1
+apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: postgres
 spec:
-  replicas: 2
+  replicas: 1
+  selector:
+    matchLabels:
+      app: postgres
   template:
     metadata:
       labels:
@@ -66,7 +74,10 @@ spec:
         volumeMounts:
         - mountPath: "/var/lib/postgresql/data"
           name: volume
+          subPath: postgres
       volumes:
         - name: volume
           persistentVolumeClaim:
-            claimName: azure-file
+            claimName: azure-managed-disk
+      nodeSelector:
+        apptype: db
