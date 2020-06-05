@@ -6,7 +6,7 @@ spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: sample-django
+    name: sample-django-deployment
   minReplicas: 10
   maxReplicas: 15
   metrics:

@@ -1,7 +1,7 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: sample-django
+  name: sample-django-deployment
 spec:
   replicas: 10
   strategy:
@@ -19,7 +19,7 @@ spec:
       imagePullSecrets:
         - name: regcred
       containers:
-      - image: tathagatk22/sample-django:e11d2ff
+      - image: docker.io/tathagatk22/django-app:1
         name: sample-django
         imagePullPolicy: Always
         ports:
@@ -41,12 +41,12 @@ spec:
             path: /core/health-check
             port: port
             scheme: HTTP
-          initialDelaySeconds: 30
+          initialDelaySeconds: 180
           periodSeconds: 10
         resources:
           limits:
-            cpu: 30m
-            memory: 200Mi
+            cpu: 20m
+            memory: 150Mi
 
 ---
 apiVersion: apps/v1
